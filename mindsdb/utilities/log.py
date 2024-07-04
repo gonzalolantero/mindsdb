@@ -4,6 +4,38 @@ from logging.config import dictConfig
 
 logging_initialized = False
 
+branch_coverage = {}
+
+def initialize_coverage(func_name, num_branches):
+    branch_coverage[func_name] = [False] * num_branches
+
+def mark_branch(func_name, branch_id):
+    branch_coverage[func_name][branch_id] = True
+
+def report_coverage():
+    total_branches = 0
+    reached_branches = 0
+    
+    for func_name, branches in branch_coverage.items():
+        func_total = len(branches)
+        func_reached = sum(branches)
+        
+        total_branches += func_total
+        reached_branches += func_reached
+        
+        coverage_percentage = (func_reached / func_total) * 100 if func_total > 0 else 0
+        
+        print(f"Coverage for {func_name}:")
+        for i, reached in enumerate(branches):
+            print(f"  Branch {i}: {'Reached! ✅' if reached else 'Not Reached ❌'}")
+        print(f"  Function coverage: {coverage_percentage:.2f}%\n")
+    
+    overall_coverage = (reached_branches / total_branches) * 100 if total_branches > 0 else 0
+    print(f"Overall branch coverage: {overall_coverage:.2f}%")
+
+initialize_coverage("configure_logging", 2)
+
+initialize_coverage("get_logger", 2)
 
 class ColorFormatter(logging.Formatter):
 
@@ -27,12 +59,13 @@ class ColorFormatter(logging.Formatter):
         log_fmt = self.FORMATS.get(record.levelno)
         return log_fmt.format(record)
 
-
 def configure_logging():
     mindsdb_level = os.environ.get("MINDSDB_LOG_LEVEL", None)
     if mindsdb_level is not None:
+        mark_branch("configure_logging", 0)
         mindsdb_level = getattr(logging, mindsdb_level)
     else:
+        mark_branch("configure_logging", 1)
         mindsdb_level = logging.INFO
 
     logging_config = dict(
@@ -72,7 +105,30 @@ def getLogger(name=None):
     """
     global logging_initialized
     if not logging_initialized:
+        mark_branch("get_logger", 0)
         configure_logging()
         logging_initialized = True
+    else:
+        mark_branch("get_logger", 1)
 
     return logging.getLogger(name)
+
+
+if __name__ == "__main__":
+    #test for get_logger branch 0 & configure_logging branch 1
+    logger = getLogger()
+    logger.debug("Debug message")
+    logger.info("Info message")
+    logger.warning("Warning message")
+    logger.error("Error message")
+    logger.critical("Critical message")
+
+    #test for configure_logging branch 0:
+    os.environ["MINDSDB_LOG_LEVEL"] = "DEBUG"
+    logging_initialized = False 
+    logger = getLogger()
+
+    #test for get_logger branch 1:
+    logger = getLogger()
+
+report_coverage()
