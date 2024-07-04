@@ -8,6 +8,7 @@ My repository URL: https://github.com/gonzalolantero/mindsdb
 Number of lines of code: ~114.5 KLOC 
 Tool used to count it: lizard
 ![image](https://hackmd.io/_uploads/ry4UCRmvC.png)
+<img src="https://hackmd.io/_uploads/ry4UCRmvC.png" alt="image" />
 
 Programming language: Python
 
